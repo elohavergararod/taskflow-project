@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{html,js}"], // Ajusta la ruta según tu proyecto
+  darkMode: 'class',
+  content: ["./FirstWeb/**/*.{html,js}"], 
   theme: {
     extend: {},
   },

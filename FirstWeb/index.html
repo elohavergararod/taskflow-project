@@ -1,86 +1,58 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" >
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow</title>
-    <link rel="stylesheet" href="css/FirstWeb.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow</title>
+  <link rel="stylesheet" href="css/output.css">
 </head>
-<body>
-    <header>
-        <h1>TaskFlow</h1>
-    </header>
-    <main>
-        <aside>
-            <nav>
-                <ul>
-                    <li><a href="#" id="filterAll">All</a></li>
-                    <li><a href="#" id="filterPending">Pending</a></li>
-                    <li><a href="#" id="filterCompleted">Completed</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <section>
-            <div class="task-form">
-                <input type="text" id="taskInput" placeholder="New task">
+<body class="font-sans bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+  
+  <header class="bg-blue-400 dark:bg-blue-600 text-white p-5 font-semibold text-xl flex justify-between items-center">
+    <h1>TaskFlow</h1>
+    <button id="darkToggle" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded transition">🌙</button>
+  </header>
 
-                <select id="prioritySelect">
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
+  <main class="flex flex-col md:flex-row p-6 md:p-12 min-h-[calc(100vh-72px)] gap-6">
+    
+    <aside class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full md:w-64 flex-shrink-0">
+      <nav>
+        <ul class="space-y-4">
+          <li><a href="#" id="filterAll" class="block px-4 py-2 rounded hover:bg-blue-400 hover:text-white transition">All</a></li>
+          <li><a href="#" id="filterPending" class="block px-4 py-2 rounded hover:bg-blue-400 hover:text-white transition">Pending</a></li>
+          <li><a href="#" id="filterCompleted" class="block px-4 py-2 rounded hover:bg-blue-400 hover:text-white transition">Completed</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-                <select id="categorySelect">
-                    <option value="work">Work</option>
-                    <option value="studies">Studies</option>
-                    <option value="personal">Personal</option>
-                </select>
+    
+    <section class="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div class="task-form flex flex-wrap gap-3 mb-8">
+        <input type="text" id="taskInput" placeholder="New task" input class="border rounded px-3 py-2 focus:border-blue-400 focus:outline-none hover:border-blue-300 transition-colors duration-200">
+        
+        <select id="prioritySelect" class="border rounded px-3 py-2 focus:border-blue-400 focus:outline-none hover:border-blue-300 transition-colors duration-200">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
 
-                <button id="addTaskBtn">Add</button>
+        <select id="categorySelect" class="border rounded px-3 py-2 focus:border-blue-400 focus:outline-none hover:border-blue-300 transition-colors duration-200">
+          <option value="work">Work</option>
+          <option value="studies">Studies</option>
+          <option value="personal">Personal</option>
+        </select>
 
-                <input type="text" id="searchInput" placeholder="Search task...">
-            </div>
-            <h2>Task List</h2>
-            <ul class="task-list">
-                <li class="task-item">
-                    <div class="task-info">
-                        <p class="task-title">Do First Practice</p>
-                        <p class="task-category">Work</p>
-                    </div>
-                    <span class="badge high">High</span>
-                </li>
-                <li class="task-item">
-                    <div class="task-info">
-                        <p class="task-title">Do UD1 Test</p>
-                        <p class="task-category">Studies</p>
-                    </div>
+        <button id="addTaskBtn" class="bg-blue-400 dark:bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-500 dark:hover:bg-blue-700 transition">Add</button>
 
-                    <span class="badge high">High</span>
-                </li>
-                <li class="task-item">
-                    <div class="task-info">
-                        <p class="task-title">Do UD2 Test</p>
-                        <p class="task-category">Studies</p>
-                    </div>
-                    <span class="badge medium">Medium</span>
-                </li>
-                <li class="task-item">
-                    <div class="task-info">
-                        <p class="task-title">Clean my room</p>
-                        <p class="task-category">Personal</p>
-                    </div>
-                    <span class="badge low">Low</span>
-                </li>
-                <li class="task-item">
-                    <div class="task-info">
-                        <p class="task-title">Do exercise</p>
-                        <p class="task-category">Personal</p>
-                    </div>
-                    <span class="badge low">Low</span>
-                </li>
-            </ul>
-        </section>
-        <script src="js/app.js"></script>
-    </main>
+        <input type="text" id="searchInput" placeholder="Search task..." input class="border rounded px-3 py-2 focus:border-blue-400 focus:outline-none hover:border-blue-300 transition-colors duration-200">
+      </div>
+
+      <h2 class="text-lg font-semibold mb-4">Task List</h2>
+      <ul class="task-list space-y-3">
+        
+      </ul>
+    </section>
+    <script src="js/app.js"></script>
+  </main>
 </body>
 </html>

@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterPending = document.getElementById("filterPending");
     const filterCompleted = document.getElementById("filterCompleted");
 
+    const darkToggle = document.getElementById("darkToggle");
+
+    darkToggle.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        console.log(document.documentElement.classList); 
+    });
     let tasks = [];
 
     function capitalize(text) {
@@ -24,24 +30,24 @@ document.addEventListener("DOMContentLoaded", () => {
     function createTaskElement(task) {
 
         const li = document.createElement("li");
-        li.classList.add("task-item");
+        li.classList.add("task-item", "flex", "justify-between", "items-center");
 
         const categoryFormatted = capitalize(task.category);
         const priorityFormatted = capitalize(task.priority);
         const statusFormatted = capitalize(task.status);
 
         if (task.status === "completed") {
-            li.classList.add("completed");
+            li.classList.add("completed", "opacity-50");
         }
 
         li.innerHTML = `
-            <div class="task-info">
-                <p class="task-title">${task.title}</p>
-                <p class="task-category">${categoryFormatted}</p>
-                <p class="task-status">${statusFormatted}</p>
+            <div class="task-info flex flex-col">
+                <p class="task-title font-semibold text-lg">${task.title}</p>
+                <p class="task-category text-sm text-gray-500 dark:text-gray-300">${categoryFormatted}</p>
+                <p class="task-status text-xs text-gray-400 dark:text-gray-400">${statusFormatted}</p>
             </div>
-            <span class="badge ${task.priority}">${priorityFormatted}</span>
-            <button class="delete-btn">X</button>
+            <span class="badge px-2 py-1 rounded text-white font-bold text-xs ${task.priority === 'high' ? 'bg-red-500' : task.priority === 'medium' ? 'bg-yellow-400' : 'bg-green-500'}">${priorityFormatted}</span>
+            <button class="delete-btn text-red-500 font-bold ml-3 hover:scale-110 transition-transform">X</button>
         `;
 
         li.querySelector(".delete-btn").addEventListener("click", () => {
@@ -50,7 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (completed) {
                 task.status = "completed";
-                li.classList.add("completed");
+                li.classList.add("completed", "opacity-50");
+                const statusEl = li.querySelector(".task-status");
+                if (statusEl) {
+                    statusEl.textContent = "Completed";
+                }
             } else {
                 tasks = tasks.filter(t => t.id !== task.id);
                 li.remove();
