@@ -14,52 +14,73 @@
         <aside>
             <nav>
                 <ul>
-                    <li><a href="#">Todas</a></li>
-                    <li><a href="#">Pendientes</a></li>
-                    <li><a href="#">Completadas</a></li>
+                    <li><a href="#" id="filterAll">All</a></li>
+                    <li><a href="#" id="filterPending">Pending</a></li>
+                    <li><a href="#" id="filterCompleted">Completed</a></li>
                 </ul>
             </nav>
         </aside>
         <section>
-            <h2>Lista de tareas</h2>
+            <div class="task-form">
+                <input type="text" id="taskInput" placeholder="New task">
+
+                <select id="prioritySelect">
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+
+                <select id="categorySelect">
+                    <option value="work">Work</option>
+                    <option value="studies">Studies</option>
+                    <option value="personal">Personal</option>
+                </select>
+
+                <button id="addTaskBtn">Add</button>
+
+                <input type="text" id="searchInput" placeholder="Search task...">
+            </div>
+            <h2>Task List</h2>
             <ul class="task-list">
                 <li class="task-item">
                     <div class="task-info">
-                        <p class="task-title">Realizar Primera Práctica</p>
-                        <p class="task-category">Trabajo</p>
+                        <p class="task-title">Do First Practice</p>
+                        <p class="task-category">Work</p>
                     </div>
-                    <span class="badge alta">Alta</span>
+                    <span class="badge high">High</span>
                 </li>
                 <li class="task-item">
                     <div class="task-info">
-                        <p class="task-title">Realizar Test UD1</p>
-                        <p class="task-category">Estudios</p>
+                        <p class="task-title">Do UD1 Test</p>
+                        <p class="task-category">Studies</p>
                     </div>
-                    <span class="badge alta">Alta</span>
+
+                    <span class="badge high">High</span>
                 </li>
                 <li class="task-item">
                     <div class="task-info">
-                        <p class="task-title">Realizar Test UD2</p>
-                        <p class="task-category">Estudios</p>
+                        <p class="task-title">Do UD2 Test</p>
+                        <p class="task-category">Studies</p>
                     </div>
-                    <span class="badge media">Media</span>
+                    <span class="badge medium">Medium</span>
                 </li>
                 <li class="task-item">
                     <div class="task-info">
-                        <p class="task-title">Limpiar mi cuarto</p>
+                        <p class="task-title">Clean my room</p>
                         <p class="task-category">Personal</p>
                     </div>
-                    <span class="badge baja">Baja</span>
+                    <span class="badge low">Low</span>
                 </li>
                 <li class="task-item">
                     <div class="task-info">
-                        <p class="task-title">Hacer ejercicio</p>
+                        <p class="task-title">Do exercise</p>
                         <p class="task-category">Personal</p>
                     </div>
-                    <span class="badge baja">Baja</span>
+                    <span class="badge low">Low</span>
                 </li>
             </ul>
         </section>
+        <script src="js/app.js"></script>
     </main>
 </body>
 </html>

@@ -131,9 +131,85 @@ section {
     font-size: 0.75rem;
 }
 
-.alta { background: var(--priority-high); }
-.media { background: var(--priority-medium); }
-.baja { background: var(--priority-low); }
+.high { background: var(--priority-high); }
+.medium { background: var(--priority-medium); }
+.low { background: var(--priority-low); }
+
+.completed {
+opacity: 0.5;
+text-decoration: line-through;
+}
+
+.task-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.task-form input,
+.task-form select {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: var(--text-size);
+    font-family: var(--base-font);
+}
+
+.task-form input:focus,
+.task-form select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+
+#addTaskBtn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+#addTaskBtn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--priority-high);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: var(--space-md);
+    transition: transform 0.2s ease;
+}
+
+.delete-btn:hover {
+    transform: scale(1.2);
+}
+
+
+.task-status {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+#searchInput {
+    flex: 1;
+    min-width: 180px;
+}
 
 
 @media (max-width: 600px) {
