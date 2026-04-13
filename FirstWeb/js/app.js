@@ -13,11 +13,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let tasks = [];
 
+    // Call updateTaskCounter whenever a task is added, deleted, or completed
+    function updateTaskCounter() {
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(task => task.status === "completed").length;
+        document.getElementById("taskCounter").textContent = `${completedTasks}/${totalTasks}`;
+    }
+
+
     function capitalize(text) {
+        if (typeof text !== 'string' || text.length === 0) {
+            return '';
+        }
         return text.charAt(0).toUpperCase() + text.slice(1);
     }
 
-    function saveTasks() {
+    function persistTasks() {
         localStorage.setItem("tasks", JSON.stringify(tasks));
     }
 
@@ -56,11 +67,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 li.remove();
             }
 
-            saveTasks();
+            persistTasks();
         });
 
         taskList.appendChild(li);
     }
+
+    // Call updateTaskCounter whenever a task is added, deleted, or completed
+    updateTaskCounter();
+
 
     function addTask() {
 
@@ -82,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         createTaskElement(newTask);
 
-        saveTasks();
+        persistTasks();
 
         taskInput.value = "";
     }
@@ -151,4 +166,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadTasks();
 
+    
 });
