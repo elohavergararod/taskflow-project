@@ -94,7 +94,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addTaskBtn.addEventListener("click", addTask);
     taskInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") addTask();
+    if (e.key === "Enter") {
+        e.preventDefault();   
+        addTask();
+    }
     });
 
     taskBody.addEventListener("click", e => {
@@ -175,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* ── Sidebar status filter ── */
     document.querySelectorAll(".pill").forEach(btn => {
         btn.addEventListener("click", function () {
             document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
@@ -185,7 +187,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    /* ── Priority filter ── */
     document.querySelectorAll("[data-priority]").forEach(btn => {
         btn.addEventListener("click", function () {
             document.querySelectorAll("[data-priority]").forEach(p => p.classList.remove("active"));
@@ -195,7 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    /* ── Category filter ── */
     document.querySelectorAll("[data-category]").forEach(btn => {
         btn.addEventListener("click", function () {
             document.querySelectorAll("[data-category]").forEach(p => p.classList.remove("active"));
@@ -205,13 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    /* ── Search ── */
     searchInput.addEventListener("input", () => {
         searchText = searchInput.value.toLowerCase();
         renderTasks();
     });
 
-    /* ── Load from localStorage ── */
     function loadTasks() {
         const stored = localStorage.getItem("tasks");
         if (stored) {

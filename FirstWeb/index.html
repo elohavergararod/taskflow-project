@@ -15,9 +15,9 @@
       <aside>
         <p class="sidebar-label">Status</p>
         <div class="status-filters">
-          <button class="pill activate">All</button>
-          <button class="pill">Pending</button>
-          <button class="pill">Completed</button>
+          <button class="pill activate" data-filter="all">All</button>
+          <button class="pill" data-filter="pending">Pending</button>
+          <button class="pill" data-filter="completed">Completed</button>
         </div>
       </aside>
 
@@ -38,7 +38,7 @@
             <option value="personal">Personal</option>
           </select>
 
-          <button id="addTaskBtn">+ Add</button>
+          <button id="addTaskBtn" type="button">+ Add</button>
 
           <input type="text" id="searchInput" placeholder="Search task..." />
         </div>
