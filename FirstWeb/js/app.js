@@ -1,154 +1,227 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const taskList = document.querySelector(".task-list");
+
+    const taskBody = document.getElementById("taskBody");
     const taskInput = document.getElementById("taskInput");
     const prioritySelect = document.getElementById("prioritySelect");
     const categorySelect = document.getElementById("categorySelect");
     const addTaskBtn = document.getElementById("addTaskBtn");
     const searchInput = document.getElementById("searchInput");
+    const taskCounter = document.getElementById("taskCounter");
 
-    const filterAll = document.getElementById("filterAll");
-    const filterPending = document.getElementById("filterPending");
-    const filterCompleted = document.getElementById("filterCompleted");
 
     let tasks = [];
+    let activeFilter = "all";
+    let activePriority = "all";
+    let activeCategory = "all";
+    let searchText = "";
 
-    function capitalize(text) {
-        return text.charAt(0).toUpperCase() + text.slice(1);
+    function capitalize(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
     }
 
-    function saveTasks() {
+    function persistTasks() {
         localStorage.setItem("tasks", JSON.stringify(tasks));
     }
 
-    function createTaskElement(task) {
+    function updateCounter() {
+        if (!taskCounter) return;
+        const completed = tasks.filter(t => t.status === "completed").length;
+        taskCounter.textContent = `${completed}/${tasks.length}`;
+    }
 
-        const li = document.createElement("li");
-        li.classList.add("task-item");
+    function renderTasks() {
+        taskBody.innerHTML = "";
 
-        const categoryFormatted = capitalize(task.category);
-        const priorityFormatted = capitalize(task.priority);
-        const statusFormatted = capitalize(task.status);
-
-        if (task.status === "completed") {
-            li.classList.add("completed");
-        }
-
-        li.innerHTML = `
-            <div class="task-info">
-                <p class="task-title">${task.title}</p>
-                <p class="task-category">${categoryFormatted}</p>
-                <p class="task-status">${statusFormatted}</p>
-            </div>
-            <span class="badge ${task.priority}">${priorityFormatted}</span>
-            <button class="delete-btn">X</button>
-        `;
-
-        li.querySelector(".delete-btn").addEventListener("click", () => {
-
-            const completed = confirm("Is this task completed?");
-
-            if (completed) {
-                task.status = "completed";
-                li.classList.add("completed");
-            } else {
-                tasks = tasks.filter(t => t.id !== task.id);
-                li.remove();
-            }
-
-            saveTasks();
+        const filtered = tasks.filter(task => {
+            const matchFilter = activeFilter === "all" || task.status === activeFilter;
+            const matchPriority = activePriority === "all" || task.priority === activePriority;
+            const matchCategory = activeCategory === "all" || task.category === activeCategory;
+            const matchSearch = task.title.toLowerCase().includes(searchText);
+            return matchFilter && matchPriority && matchCategory && matchSearch;
         });
 
-        taskList.appendChild(li);
+        filtered.forEach(task => {
+
+            const tr = document.createElement("tr");
+            if (task.status === "completed") tr.classList.add("completed-row");
+
+            const isDone = task.status === "completed";
+
+            tr.innerHTML = `
+        <td>
+          <button class="check-btn ${isDone ? "done" : ""}" data-id="${task.id}">
+            ${isDone ? "✓" : "○"}
+          </button>
+        </td>
+        <td>${task.title}</td>
+        <td><span class="badge ${task.priority}">${capitalize(task.priority)}</span></td>
+        <td><span class="badge ${task.category}">${capitalize(task.category)}</span></td>
+        <td>
+          ${isDone
+                    ? `<span class="status-completed">Completed</span>`
+                    : `<span class="status-pending">Pending</span>`}
+        </td>
+        <td class="actions">
+          <button class="edit-btn" data-id="${task.id}">Edit</button>
+          <button class="del-btn" data-id="${task.id}">✕</button>
+        </td>
+      `;
+
+            taskBody.appendChild(tr);
+        });
+
+        updateCounter();
     }
+
 
     function addTask() {
-
         const text = taskInput.value.trim();
-        const category = categorySelect.value;
-        const priority = prioritySelect.value;
+        if (!text) return;
 
-        if (text === "") return;
-
-        const newTask = {
+        tasks.push({
             id: Date.now(),
             title: text,
-            priority: priority,
-            category: category,
+            priority: prioritySelect.value,
+            category: categorySelect.value,
             status: "pending"
-        };
-
-        tasks.push(newTask);
-
-        createTaskElement(newTask);
-
-        saveTasks();
+        });
 
         taskInput.value = "";
+        persistTasks();
+        renderTasks();
     }
-
-    function loadTasks() {
-
-        const storedTasks = localStorage.getItem("tasks");
-
-        if (!storedTasks) return;
-
-        tasks = JSON.parse(storedTasks).map(task => ({
-            ...task,
-            status: task.status || "pending"
-        }));
-
-        tasks.forEach(task => createTaskElement(task));
-    }
-
-    searchInput.addEventListener("keyup", () => {
-
-        const searchText = searchInput.value.toLowerCase();
-        const items = document.querySelectorAll(".task-item");
-
-        items.forEach(item => {
-
-            const title = item.querySelector(".task-title").textContent.toLowerCase();
-
-            item.style.display = title.includes(searchText) ? "flex" : "none";
-
-        });
-    });
-
-    filterAll.addEventListener("click", () => {
-
-        document.querySelectorAll(".task-item").forEach(task => {
-            task.style.display = "flex";
-        });
-
-    });
-
-    filterPending.addEventListener("click", () => {
-
-        document.querySelectorAll(".task-item").forEach(task => {
-
-            task.style.display = task.classList.contains("completed")
-                ? "none"
-                : "flex";
-
-        });
-
-    });
-
-    filterCompleted.addEventListener("click", () => {
-
-        document.querySelectorAll(".task-item").forEach(task => {
-
-            task.style.display = task.classList.contains("completed")
-                ? "flex"
-                : "none";
-
-        });
-
-    });
 
     addTaskBtn.addEventListener("click", addTask);
+    taskInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") addTask();
+    });
+
+    taskBody.addEventListener("click", e => {
+
+        const id = parseInt(e.target.dataset.id);
+        if (!id) return;
+
+
+        if (e.target.classList.contains("check-btn")) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.status = task.status === "completed" ? "pending" : "completed";
+                persistTasks();
+                renderTasks();
+            }
+        }
+
+        if (e.target.classList.contains("edit-btn")) {
+
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            const tr = e.target.closest("tr");
+
+            tr.innerHTML = `
+                <td></td>
+                <td><input type="text" value="${task.title}" class="edit-title"></td>
+                <td>
+                    <select class="edit-priority">
+                        <option value="high" ${task.priority === "high" ? "selected" : ""}>High</option>
+                        <option value="medium" ${task.priority === "medium" ? "selected" : ""}>Medium</option>
+                        <option value="low" ${task.priority === "low" ? "selected" : ""}>Low</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="edit-category">
+                        <option value="work" ${task.category === "work" ? "selected" : ""}>Work</option>
+                        <option value="studies" ${task.category === "studies" ? "selected" : ""}>Studies</option>
+                        <option value="personal" ${task.category === "personal" ? "selected" : ""}>Personal</option>
+                    </select>
+                </td>
+                <td></td>
+                <td>
+                    <button class="save-btn" data-id="${task.id}">Save</button>
+                </td>
+            `;
+
+            return;
+        }
+
+        if (e.target.classList.contains("save-btn")) {
+
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            const tr = e.target.closest("tr");
+
+            task.title = tr.querySelector(".edit-title").value.trim();
+            task.priority = tr.querySelector(".edit-priority").value;
+            task.category = tr.querySelector(".edit-category").value;
+
+            persistTasks();
+            renderTasks();
+            return;
+        }
+
+
+        if (e.target.classList.contains("del-btn")) {
+            const tr = e.target.closest("tr");
+            tr.classList.add("removing");
+
+            setTimeout(() => {
+                tasks = tasks.filter(t => t.id !== id);
+                persistTasks();
+                renderTasks();
+            }, 200);
+            return;
+        }
+    });
+
+    /* ── Sidebar status filter ── */
+    document.querySelectorAll(".pill").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+            this.classList.add("active");
+            activeFilter = this.dataset.filter;
+            renderTasks();
+        });
+    });
+
+    /* ── Priority filter ── */
+    document.querySelectorAll("[data-priority]").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll("[data-priority]").forEach(p => p.classList.remove("active"));
+            this.classList.add("active");
+            activePriority = this.dataset.priority;
+            renderTasks();
+        });
+    });
+
+    /* ── Category filter ── */
+    document.querySelectorAll("[data-category]").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll("[data-category]").forEach(p => p.classList.remove("active"));
+            this.classList.add("active");
+            activeCategory = this.dataset.category;
+            renderTasks();
+        });
+    });
+
+    /* ── Search ── */
+    searchInput.addEventListener("input", () => {
+        searchText = searchInput.value.toLowerCase();
+        renderTasks();
+    });
+
+    /* ── Load from localStorage ── */
+    function loadTasks() {
+        const stored = localStorage.getItem("tasks");
+        if (stored) {
+            tasks = JSON.parse(stored).map(t => ({
+                ...t,
+                status: t.status || "pending"
+            }));
+        }
+        renderTasks();
+    }
 
     loadTasks();
-
 });
