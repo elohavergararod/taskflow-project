@@ -16,14 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let searchText = "";
 
     const PRIORITY_BADGES = {
-        high:   "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+        high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
         medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
-        low:    "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+        low: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
     };
 
     const CATEGORY_BADGES = {
-        work:     "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-        studies:  "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+        work: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+        studies: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
         personal: "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300"
     };
 
@@ -192,11 +192,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td></td>
 
                 <td>
-                    <input type="text" value="${task.title}" class="edit-title border px-2 py-1 rounded">
+                    <input type="text"
+                        value="${task.title}"
+                        class="edit-title border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    >
                 </td>
 
                 <td>
-                    <select class="edit-priority border px-2 py-1 rounded">
+                    <select class="edit-priority border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         <option value="high" ${task.priority === "high" ? "selected" : ""}>High</option>
                         <option value="medium" ${task.priority === "medium" ? "selected" : ""}>Medium</option>
                         <option value="low" ${task.priority === "low" ? "selected" : ""}>Low</option>
@@ -204,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </td>
 
                 <td>
-                    <select class="edit-category border px-2 py-1 rounded">
+                    <select class="edit-category border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
                         <option value="work" ${task.category === "work" ? "selected" : ""}>Work</option>
                         <option value="studies" ${task.category === "studies" ? "selected" : ""}>Studies</option>
                         <option value="personal" ${task.category === "personal" ? "selected" : ""}>Personal</option>
@@ -234,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderTasks();
             return;
         }
-});
+    });
 
     document.querySelectorAll(".pill").forEach(btn => {
         btn.addEventListener("click", () => {
