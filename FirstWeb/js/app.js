@@ -102,9 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     taskBody.addEventListener("click", e => {
 
-        const id = parseInt(e.target.dataset.id);
-        if (!id) return;
+        const btn = e.target.closest("button");
+        if (!btn) return;
 
+        const id = Number(btn.dataset.id);
+        if (isNaN(id)) return;
 
         if (e.target.classList.contains("check-btn")) {
             const task = tasks.find(t => t.id === id);
