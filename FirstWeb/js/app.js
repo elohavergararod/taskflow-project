@@ -159,23 +159,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
     taskBody.addEventListener("click", e => {
 
-        const id = Number(e.target.dataset.id);
+        const btn = e.target.closest("button");
+        if (!btn) return;
 
-        if (e.target.classList.contains("check-btn")) {
-            const task = tasks.find(t => t.id === id);
+        const id = Number(btn.dataset.id);
+        if (isNaN(id)) return;
+
+        const task = tasks.find(t => t.id === id);
+
+        if (btn.classList.contains("check-btn")) {
             if (task) {
                 task.status = task.status === "completed" ? "pending" : "completed";
                 persistTasks();
                 renderTasks();
             }
+            return;
         }
 
-        if (e.target.classList.contains("del-btn")) {
+        if (btn.classList.contains("del-btn")) {
             tasks = tasks.filter(t => t.id !== id);
             persistTasks();
             renderTasks();
+            return;
         }
-    });
+
+        if (btn.classList.contains("edit-btn")) {
+
+            const tr = btn.closest("tr");
+            if (!task || !tr) return;
+
+            tr.innerHTML = `
+                <td></td>
+
+                <td>
+                    <input type="text" value="${task.title}" class="edit-title border px-2 py-1 rounded">
+                </td>
+
+                <td>
+                    <select class="edit-priority border px-2 py-1 rounded">
+                        <option value="high" ${task.priority === "high" ? "selected" : ""}>High</option>
+                        <option value="medium" ${task.priority === "medium" ? "selected" : ""}>Medium</option>
+                        <option value="low" ${task.priority === "low" ? "selected" : ""}>Low</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="edit-category border px-2 py-1 rounded">
+                        <option value="work" ${task.category === "work" ? "selected" : ""}>Work</option>
+                        <option value="studies" ${task.category === "studies" ? "selected" : ""}>Studies</option>
+                        <option value="personal" ${task.category === "personal" ? "selected" : ""}>Personal</option>
+                    </select>
+                </td>
+
+                <td></td>
+
+                <td>
+                    <button class="save-btn text-green-500" data-id="${task.id}">Save</button>
+                </td>
+            `;
+
+            return;
+        }
+
+        if (btn.classList.contains("save-btn")) {
+
+            const tr = btn.closest("tr");
+            if (!task || !tr) return;
+
+            task.title = tr.querySelector(".edit-title").value.trim();
+            task.priority = tr.querySelector(".edit-priority").value;
+            task.category = tr.querySelector(".edit-category").value;
+
+            persistTasks();
+            renderTasks();
+            return;
+        }
+});
 
     document.querySelectorAll(".pill").forEach(btn => {
         btn.addEventListener("click", () => {
