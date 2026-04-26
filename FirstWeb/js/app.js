@@ -74,6 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function getTaskStatusMarkup(isDone) {
+        return isDone
+            ? `<span class="text-green-500 font-medium">Completed</span>`
+            : `<span class="text-gray-400">Pending</span>`;
+    }
+
     function renderTasks() {
         taskBody.innerHTML = "";
 
@@ -111,9 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </td>
 
                 <td class="py-2">
-                    ${isDone
-                        ? `<span class="text-green-500 font-medium">Completed</span>`
-                        : `<span class="text-gray-400">Pending</span>`}
+                    ${getTaskStatusMarkup(isDone)}
                 </td>
 
                 <td class="py-2 flex gap-2">
