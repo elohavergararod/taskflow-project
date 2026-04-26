@@ -80,15 +80,19 @@ document.addEventListener("DOMContentLoaded", () => {
             : `<span class="text-gray-400">Pending</span>`;
     }
 
-    function renderTasks() {
-        taskBody.innerHTML = "";
-
-        const filtered = tasks.filter(task =>
-            (activeFilter   === "all" || task.status   === activeFilter) &&
+    function matchesFilters(task) {
+        return (
+            (activeFilter === "all" || task.status === activeFilter) &&
             (activePriority === "all" || task.priority === activePriority) &&
             (activeCategory === "all" || task.category === activeCategory) &&
             task.title.toLowerCase().includes(searchText)
         );
+    }
+
+    function renderTasks() {
+        taskBody.innerHTML = "";
+
+        const filtered = tasks.filter(matchesFilters);
 
         filtered.forEach(task => {
             const isDone = task.status === "completed";
