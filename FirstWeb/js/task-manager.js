@@ -67,6 +67,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     }
 
+    function normalizeTaskTitle(title) {
+        return title
+            .trim()
+            .replace(/\s+/g, " ")
+            .normalize("NFKC")
+            .toLocaleLowerCase("es-ES");
+    }
+
+    function hasDuplicatePendingTitle(title, excludeTaskId = null) {
+        const normalizedTitle = normalizeTaskTitle(title);
+        return taskList.some(task =>
+            task.id !== excludeTaskId &&
+            task.status === "pending" &&
+            normalizeTaskTitle(task.title) === normalizedTitle
+        );
+    }
+
     function persistTasks() {
         localStorage.setItem("tasks", JSON.stringify(taskList));
     }
@@ -181,6 +198,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if (hasDuplicatePendingTitle(taskTitle)) {
+            alert("A pending task with this title already exists.");
+            return;
+        }
+
         taskList.push(createTask(taskTitle));
         taskTitleInput.value = "";
         persistTasks();
@@ -270,6 +292,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const optionsError = validateTaskOptions(editedPriority, editedCategory);
             if (optionsError) {
                 alert(optionsError);
+                return;
+            }
+
+            if (hasDuplicatePendingTitle(editedTitle, selectedTask.id)) {
+                alert("A pending task with this title already exists.");
                 return;
             }
 
