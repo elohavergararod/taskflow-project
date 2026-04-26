@@ -129,17 +129,21 @@ document.addEventListener("DOMContentLoaded", () => {
         updateFilterUI();
     }
 
+    function createTask(title) {
+        return {
+            id: Date.now(),
+            title,
+            priority: prioritySelect.value,
+            category: categorySelect.value,
+            status: "pending"
+        };
+    }
+
     function addTask() {
         const text = taskInput.value.trim();
         if (!text) return;
 
-        tasks.push({
-            id:       Date.now(),
-            title:    text,
-            priority: prioritySelect.value,
-            category: categorySelect.value,
-            status:   "pending"
-        });
+        tasks.push(createTask(text));
 
         taskInput.value = "";
         persistTasks();
