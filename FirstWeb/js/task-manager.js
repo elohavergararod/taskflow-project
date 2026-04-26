@@ -8,6 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const taskCounterLabel = document.getElementById("taskCounter");
     const themeToggleButton = document.getElementById("darkToggle");
 
+    const MIN_TITLE_LENGTH = 3;
+    const MAX_TITLE_LENGTH = 100;
+    const TITLE_ALLOWED_PATTERN = /^[A-Za-z0-9À-ÿ\s.,:;!?()\-_'"]+$/;
     const VALID_PRIORITIES = ["high", "medium", "low"];
     const VALID_CATEGORIES = ["work", "studies", "personal"];
 
@@ -32,6 +35,26 @@ document.addEventListener("DOMContentLoaded", () => {
     function capitalize(text) {
         if (typeof text !== "string" || text.length === 0) return "";
         return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    function validateTaskTitle(title) {
+        if (!title) {
+            return "Task title is required.";
+        }
+
+        if (title.length < MIN_TITLE_LENGTH) {
+            return `Task title must be at least ${MIN_TITLE_LENGTH} characters long.`;
+        }
+
+        if (title.length > MAX_TITLE_LENGTH) {
+            return `Task title must be ${MAX_TITLE_LENGTH} characters or less.`;
+        }
+
+        if (!TITLE_ALLOWED_PATTERN.test(title)) {
+            return "Task title contains invalid characters.";
+        }
+
+        return "";
     }
 
     function validateTaskOptions(priority, category) {
@@ -146,7 +169,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function addTask() {
         const taskTitle = taskTitleInput.value.trim();
-        if (!taskTitle) return;
+        const titleError = validateTaskTitle(taskTitle);
+        if (titleError) {
+            alert(titleError);
+            return;
+        }
 
         const optionsError = validateTaskOptions(taskPrioritySelect.value, taskCategorySelect.value);
         if (optionsError) {
@@ -231,6 +258,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const taskRow = clickedButton.closest("tr");
             if (!selectedTask || !taskRow) return;
 
+            const editedTitle = taskRow.querySelector(".edit-title").value.trim();
+            const titleError = validateTaskTitle(editedTitle);
+            if (titleError) {
+                alert(titleError);
+                return;
+            }
+
             const editedPriority = taskRow.querySelector(".edit-priority").value;
             const editedCategory = taskRow.querySelector(".edit-category").value;
             const optionsError = validateTaskOptions(editedPriority, editedCategory);
@@ -239,7 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            selectedTask.title = taskRow.querySelector(".edit-title").value.trim();
+            selectedTask.title = editedTitle;
             selectedTask.priority = editedPriority;
             selectedTask.category = editedCategory;
             persistTasks();
