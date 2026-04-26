@@ -1,19 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const taskBody       = document.getElementById("taskBody");
-    const taskInput      = document.getElementById("taskInput");
-    const prioritySelect = document.getElementById("prioritySelect");
-    const categorySelect = document.getElementById("categorySelect");
-    const addTaskBtn     = document.getElementById("addTaskBtn");
-    const searchInput    = document.getElementById("searchInput");
-    const taskCounter    = document.getElementById("taskCounter");
-    const darkToggle     = document.getElementById("darkToggle");
+    const taskTableBody = document.getElementById("taskBody");
+    const taskTitleInput = document.getElementById("taskInput");
+    const taskPrioritySelect = document.getElementById("prioritySelect");
+    const taskCategorySelect = document.getElementById("categorySelect");
+    const addTaskButton = document.getElementById("addTaskBtn");
+    const taskSearchInput = document.getElementById("searchInput");
+    const taskCounterLabel = document.getElementById("taskCounter");
+    const themeToggleButton = document.getElementById("darkToggle");
 
-    let tasks          = [];
-    let activeFilter   = "all";
-    let activePriority = "all";
-    let activeCategory = "all";
-    let searchText     = "";
+    let taskList = [];
+    let activeStatusFilter = "all";
+    let activePriorityFilter = "all";
+    let activeCategoryFilter = "all";
+    let searchQuery = "";
 
     const PRIORITY_BADGES = {
         high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
@@ -36,16 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
      * Renombrado de saveTasks a persistTasks para consistencia.
      */
     function persistTasks() {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
+        localStorage.setItem("tasks", JSON.stringify(taskList));
     }
 
     /**
      * Generado con ayuda de Cursor usando filter().
      */
     function updateTaskCounter() {
-        const totalTasks     = tasks.length;
-        const completedTasks = tasks.filter(task => task.status === "completed").length;
-        taskCounter.textContent = `${completedTasks}/${totalTasks}`;
+        const totalTasks = taskList.length;
+        const completedTasks = taskList.filter(task => task.status === "completed").length;
+        taskCounterLabel.textContent = `${completedTasks}/${totalTasks}`;
     }
 
     function applyActiveButtonStyles(btn, isActive) {
@@ -57,17 +57,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateFilterUI() {
         document.querySelectorAll(".pill").forEach(btn => {
-            const isActive = btn.dataset.filter === activeFilter;
+            const isActive = btn.dataset.filter === activeStatusFilter;
             applyActiveButtonStyles(btn, isActive);
         });
 
         document.querySelectorAll("[data-priority]").forEach(btn => {
-            const isActive = btn.dataset.priority === activePriority;
+            const isActive = btn.dataset.priority === activePriorityFilter;
             applyActiveButtonStyles(btn, isActive);
         });
 
         document.querySelectorAll("[data-category]").forEach(btn => {
-            const isActive = btn.dataset.category === activeCategory;
+            const isActive = btn.dataset.category === activeCategoryFilter;
             applyActiveButtonStyles(btn, isActive);
         });
     }
@@ -80,24 +80,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function matchesFilters(task) {
         return (
-            (activeFilter === "all" || task.status === activeFilter) &&
-            (activePriority === "all" || task.priority === activePriority) &&
-            (activeCategory === "all" || task.category === activeCategory) &&
-            task.title.toLowerCase().includes(searchText)
+            (activeStatusFilter === "all" || task.status === activeStatusFilter) &&
+            (activePriorityFilter === "all" || task.priority === activePriorityFilter) &&
+            (activeCategoryFilter === "all" || task.category === activeCategoryFilter) &&
+            task.title.toLowerCase().includes(searchQuery)
         );
     }
 
     function renderTasks() {
-        taskBody.innerHTML = "";
+        taskTableBody.innerHTML = "";
 
-        const filtered = tasks.filter(matchesFilters);
+        const filteredTasks = taskList.filter(matchesFilters);
 
-        filtered.forEach(task => {
+        filteredTasks.forEach(task => {
             const isDone = task.status === "completed";
-            const tr = document.createElement("tr");
-            tr.className = "border-b dark:border-gray-700";
+            const taskRow = document.createElement("tr");
+            taskRow.className = "border-b dark:border-gray-700";
 
-            tr.innerHTML = `
+            taskRow.innerHTML = `
                 <td class="py-2">
                     <button class="check-btn text-lg ${isDone ? "text-green-500" : "text-gray-400"}" data-id="${task.id}">
                         ${isDone ? "✓" : "○"}
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </td>
             `;
 
-            taskBody.appendChild(tr);
+            taskTableBody.appendChild(taskRow);
         });
 
         updateTaskCounter();
@@ -139,107 +139,107 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             id: Date.now(),
             title,
-            priority: prioritySelect.value,
-            category: categorySelect.value,
+            priority: taskPrioritySelect.value,
+            category: taskCategorySelect.value,
             status: "pending"
         };
     }
 
     function addTask() {
-        const text = taskInput.value.trim();
-        if (!text) return;
+        const taskTitle = taskTitleInput.value.trim();
+        if (!taskTitle) return;
 
-        tasks.push(createTask(text));
+        taskList.push(createTask(taskTitle));
 
-        taskInput.value = "";
+        taskTitleInput.value = "";
         persistTasks();
         renderTasks();
     }
 
-    addTaskBtn.addEventListener("click", addTask);
+    addTaskButton.addEventListener("click", addTask);
 
-    taskInput.addEventListener("keydown", e => {
+    taskTitleInput.addEventListener("keydown", e => {
         if (e.key === "Enter") {
             e.preventDefault();
             addTask();
         }
     });
 
-    taskBody.addEventListener("click", e => {
+    taskTableBody.addEventListener("click", e => {
 
-        const btn = e.target.closest("button");
-        if (!btn) return;
+        const clickedButton = e.target.closest("button");
+        if (!clickedButton) return;
 
-        const id = Number(btn.dataset.id);
-        if (isNaN(id)) return;
+        const taskId = Number(clickedButton.dataset.id);
+        if (isNaN(taskId)) return;
 
-        const task = tasks.find(t => t.id === id);
+        const selectedTask = taskList.find(task => task.id === taskId);
 
-        if (btn.classList.contains("check-btn")) {
-            if (task) {
-                task.status = task.status === "completed" ? "pending" : "completed";
+        if (clickedButton.classList.contains("check-btn")) {
+            if (selectedTask) {
+                selectedTask.status = selectedTask.status === "completed" ? "pending" : "completed";
                 persistTasks();
                 renderTasks();
             }
             return;
         }
 
-        if (btn.classList.contains("del-btn")) {
-            tasks = tasks.filter(t => t.id !== id);
+        if (clickedButton.classList.contains("del-btn")) {
+            taskList = taskList.filter(task => task.id !== taskId);
             persistTasks();
             renderTasks();
             return;
         }
 
-        if (btn.classList.contains("edit-btn")) {
+        if (clickedButton.classList.contains("edit-btn")) {
 
-            const tr = btn.closest("tr");
-            if (!task || !tr) return;
+            const taskRow = clickedButton.closest("tr");
+            if (!selectedTask || !taskRow) return;
 
-            tr.innerHTML = `
+            taskRow.innerHTML = `
                 <td></td>
 
                 <td>
                     <input type="text"
-                        value="${task.title}"
+                        value="${selectedTask.title}"
                         class="edit-title border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600"
                     >
                 </td>
 
                 <td>
                     <select class="edit-priority border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                        <option value="high" ${task.priority === "high" ? "selected" : ""}>High</option>
-                        <option value="medium" ${task.priority === "medium" ? "selected" : ""}>Medium</option>
-                        <option value="low" ${task.priority === "low" ? "selected" : ""}>Low</option>
+                        <option value="high" ${selectedTask.priority === "high" ? "selected" : ""}>High</option>
+                        <option value="medium" ${selectedTask.priority === "medium" ? "selected" : ""}>Medium</option>
+                        <option value="low" ${selectedTask.priority === "low" ? "selected" : ""}>Low</option>
                     </select>
                 </td>
 
                 <td>
                     <select class="edit-category border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                        <option value="work" ${task.category === "work" ? "selected" : ""}>Work</option>
-                        <option value="studies" ${task.category === "studies" ? "selected" : ""}>Studies</option>
-                        <option value="personal" ${task.category === "personal" ? "selected" : ""}>Personal</option>
+                        <option value="work" ${selectedTask.category === "work" ? "selected" : ""}>Work</option>
+                        <option value="studies" ${selectedTask.category === "studies" ? "selected" : ""}>Studies</option>
+                        <option value="personal" ${selectedTask.category === "personal" ? "selected" : ""}>Personal</option>
                     </select>
                 </td>
 
                 <td></td>
 
                 <td>
-                    <button class="save-btn text-green-500" data-id="${task.id}">Save</button>
+                    <button class="save-btn text-green-500" data-id="${selectedTask.id}">Save</button>
                 </td>
             `;
 
             return;
         }
 
-        if (btn.classList.contains("save-btn")) {
+        if (clickedButton.classList.contains("save-btn")) {
 
-            const tr = btn.closest("tr");
-            if (!task || !tr) return;
+            const taskRow = clickedButton.closest("tr");
+            if (!selectedTask || !taskRow) return;
 
-            task.title = tr.querySelector(".edit-title").value.trim();
-            task.priority = tr.querySelector(".edit-priority").value;
-            task.category = tr.querySelector(".edit-category").value;
+            selectedTask.title = taskRow.querySelector(".edit-title").value.trim();
+            selectedTask.priority = taskRow.querySelector(".edit-priority").value;
+            selectedTask.category = taskRow.querySelector(".edit-category").value;
 
             persistTasks();
             renderTasks();
@@ -249,31 +249,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".pill").forEach(btn => {
         btn.addEventListener("click", () => {
-            activeFilter = btn.dataset.filter;
+            activeStatusFilter = btn.dataset.filter;
             renderTasks();
         });
     });
 
     document.querySelectorAll("[data-priority]").forEach(btn => {
         btn.addEventListener("click", () => {
-            activePriority = btn.dataset.priority;
+            activePriorityFilter = btn.dataset.priority;
             renderTasks();
         });
     });
 
     document.querySelectorAll("[data-category]").forEach(btn => {
         btn.addEventListener("click", () => {
-            activeCategory = btn.dataset.category;
+            activeCategoryFilter = btn.dataset.category;
             renderTasks();
         });
     });
 
-    searchInput.addEventListener("input", () => {
-        searchText = searchInput.value.toLowerCase();
+    taskSearchInput.addEventListener("input", () => {
+        searchQuery = taskSearchInput.value.toLowerCase();
         renderTasks();
     });
 
-    darkToggle.addEventListener("click", () => {
+    themeToggleButton.addEventListener("click", () => {
         document.documentElement.classList.toggle("dark");
     });
 
@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadTasks() {
         const stored = localStorage.getItem("tasks");
         if (stored) {
-            tasks = JSON.parse(stored).map(normalizeTask);
+            taskList = JSON.parse(stored).map(normalizeTask);
         }
         renderTasks();
     }
