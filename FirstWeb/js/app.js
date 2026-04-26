@@ -277,13 +277,17 @@ document.addEventListener("DOMContentLoaded", () => {
         document.documentElement.classList.toggle("dark");
     });
 
+    function normalizeTask(task) {
+        return {
+            ...task,
+            status: task.status || "pending"
+        };
+    }
+
     function loadTasks() {
         const stored = localStorage.getItem("tasks");
         if (stored) {
-            tasks = JSON.parse(stored).map(t => ({
-                ...t,
-                status: t.status || "pending"
-            }));
+            tasks = JSON.parse(stored).map(normalizeTask);
         }
         renderTasks();
     }
