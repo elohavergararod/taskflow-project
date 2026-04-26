@@ -48,29 +48,27 @@ document.addEventListener("DOMContentLoaded", () => {
         taskCounter.textContent = `${completedTasks}/${totalTasks}`;
     }
 
+    function applyActiveButtonStyles(btn, isActive) {
+        btn.classList.toggle("bg-blue-500", isActive);
+        btn.classList.toggle("text-white", isActive);
+        btn.classList.toggle("bg-gray-200", !isActive);
+        btn.classList.toggle("dark:bg-gray-700", !isActive);
+    }
+
     function updateFilterUI() {
         document.querySelectorAll(".pill").forEach(btn => {
-            const active = btn.dataset.filter === activeFilter;
-            btn.classList.toggle("bg-blue-500", active);
-            btn.classList.toggle("text-white", active);
-            btn.classList.toggle("bg-gray-200", !active);
-            btn.classList.toggle("dark:bg-gray-700", !active);
+            const isActive = btn.dataset.filter === activeFilter;
+            applyActiveButtonStyles(btn, isActive);
         });
 
         document.querySelectorAll("[data-priority]").forEach(btn => {
-            const active = btn.dataset.priority === activePriority;
-            btn.classList.toggle("bg-blue-500", active);
-            btn.classList.toggle("text-white", active);
-            btn.classList.toggle("bg-gray-200", !active);
-            btn.classList.toggle("dark:bg-gray-700", !active);
+            const isActive = btn.dataset.priority === activePriority;
+            applyActiveButtonStyles(btn, isActive);
         });
 
         document.querySelectorAll("[data-category]").forEach(btn => {
-            const active = btn.dataset.category === activeCategory;
-            btn.classList.toggle("bg-blue-500", active);
-            btn.classList.toggle("text-white", active);
-            btn.classList.toggle("bg-gray-200", !active);
-            btn.classList.toggle("dark:bg-gray-700", !active);
+            const isActive = btn.dataset.category === activeCategory;
+            applyActiveButtonStyles(btn, isActive);
         });
     }
 
