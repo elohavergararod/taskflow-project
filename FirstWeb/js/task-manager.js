@@ -124,6 +124,61 @@ document.addEventListener("DOMContentLoaded", () => {
             : `<span class="text-gray-400">Pending</span>`;
     }
 
+    function getTaskRowMarkup(task, isDone) {
+        return `
+            <td class="py-2">
+                <button class="check-btn text-lg ${isDone ? "text-green-500" : "text-gray-400"}" data-id="${task.id}">
+                    ${isDone ? "✓" : "○"}
+                </button>
+            </td>
+            <td class="py-2">${task.title}</td>
+            <td class="py-2">
+                <span class="px-2 py-1 rounded text-xs font-medium ${PRIORITY_BADGES[task.priority]}">
+                    ${capitalize(task.priority)}
+                </span>
+            </td>
+            <td class="py-2">
+                <span class="px-2 py-1 rounded text-xs font-medium ${CATEGORY_BADGES[task.category]}">
+                    ${capitalize(task.category)}
+                </span>
+            </td>
+            <td class="py-2">${getTaskStatusMarkup(isDone)}</td>
+            <td class="py-2 flex gap-2">
+                <button class="edit-btn text-blue-500" data-id="${task.id}">Edit</button>
+                <button class="del-btn text-red-500" data-id="${task.id}">✕</button>
+            </td>
+        `;
+    }
+
+    function getEditRowMarkup(task) {
+        return `
+            <td></td>
+            <td>
+                <input type="text"
+                    value="${task.title}"
+                    class="edit-title border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
+            </td>
+            <td>
+                <select class="edit-priority border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <option value="high" ${task.priority === "high" ? "selected" : ""}>High</option>
+                    <option value="medium" ${task.priority === "medium" ? "selected" : ""}>Medium</option>
+                    <option value="low" ${task.priority === "low" ? "selected" : ""}>Low</option>
+                </select>
+            </td>
+            <td>
+                <select class="edit-category border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <option value="work" ${task.category === "work" ? "selected" : ""}>Work</option>
+                    <option value="studies" ${task.category === "studies" ? "selected" : ""}>Studies</option>
+                    <option value="personal" ${task.category === "personal" ? "selected" : ""}>Personal</option>
+                </select>
+            </td>
+            <td></td>
+            <td>
+                <button class="save-btn text-green-500" data-id="${task.id}">Save</button>
+            </td>
+        `;
+    }
+
     function matchesFilters(task) {
         return (
             (activeStatusFilter === "all" || task.status === activeStatusFilter) &&
@@ -142,30 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const isDone = task.status === "completed";
             const taskRow = document.createElement("tr");
             taskRow.className = "border-b dark:border-gray-700";
-
-            taskRow.innerHTML = `
-                <td class="py-2">
-                    <button class="check-btn text-lg ${isDone ? "text-green-500" : "text-gray-400"}" data-id="${task.id}">
-                        ${isDone ? "✓" : "○"}
-                    </button>
-                </td>
-                <td class="py-2">${task.title}</td>
-                <td class="py-2">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${PRIORITY_BADGES[task.priority]}">
-                        ${capitalize(task.priority)}
-                    </span>
-                </td>
-                <td class="py-2">
-                    <span class="px-2 py-1 rounded text-xs font-medium ${CATEGORY_BADGES[task.category]}">
-                        ${capitalize(task.category)}
-                    </span>
-                </td>
-                <td class="py-2">${getTaskStatusMarkup(isDone)}</td>
-                <td class="py-2 flex gap-2">
-                    <button class="edit-btn text-blue-500" data-id="${task.id}">Edit</button>
-                    <button class="del-btn text-red-500" data-id="${task.id}">✕</button>
-                </td>
-            `;
+            taskRow.innerHTML = getTaskRowMarkup(task, isDone);
 
             taskTableBody.appendChild(taskRow);
         });
@@ -184,22 +216,25 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    function validateTaskData(title, priority, category, excludeTaskId = null) {
+        const titleError = validateTaskTitle(title);
+        if (titleError) return titleError;
+
+        const optionsError = validateTaskOptions(priority, category);
+        if (optionsError) return optionsError;
+
+        if (hasDuplicatePendingTitle(title, excludeTaskId)) {
+            return "A pending task with this title already exists.";
+        }
+
+        return "";
+    }
+
     function addTask() {
         const taskTitle = taskTitleInput.value.trim();
-        const titleError = validateTaskTitle(taskTitle);
-        if (titleError) {
-            alert(titleError);
-            return;
-        }
-
-        const optionsError = validateTaskOptions(taskPrioritySelect.value, taskCategorySelect.value);
-        if (optionsError) {
-            alert(optionsError);
-            return;
-        }
-
-        if (hasDuplicatePendingTitle(taskTitle)) {
-            alert("A pending task with this title already exists.");
+        const validationError = validateTaskData(taskTitle, taskPrioritySelect.value, taskCategorySelect.value);
+        if (validationError) {
+            alert(validationError);
             return;
         }
 
@@ -246,33 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (clickedButton.classList.contains("edit-btn")) {
             const taskRow = clickedButton.closest("tr");
             if (!selectedTask || !taskRow) return;
-
-            taskRow.innerHTML = `
-                <td></td>
-                <td>
-                    <input type="text"
-                        value="${selectedTask.title}"
-                        class="edit-title border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                </td>
-                <td>
-                    <select class="edit-priority border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                        <option value="high" ${selectedTask.priority === "high" ? "selected" : ""}>High</option>
-                        <option value="medium" ${selectedTask.priority === "medium" ? "selected" : ""}>Medium</option>
-                        <option value="low" ${selectedTask.priority === "low" ? "selected" : ""}>Low</option>
-                    </select>
-                </td>
-                <td>
-                    <select class="edit-category border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                        <option value="work" ${selectedTask.category === "work" ? "selected" : ""}>Work</option>
-                        <option value="studies" ${selectedTask.category === "studies" ? "selected" : ""}>Studies</option>
-                        <option value="personal" ${selectedTask.category === "personal" ? "selected" : ""}>Personal</option>
-                    </select>
-                </td>
-                <td></td>
-                <td>
-                    <button class="save-btn text-green-500" data-id="${selectedTask.id}">Save</button>
-                </td>
-            `;
+            taskRow.innerHTML = getEditRowMarkup(selectedTask);
             return;
         }
 
@@ -289,14 +298,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const editedPriority = taskRow.querySelector(".edit-priority").value;
             const editedCategory = taskRow.querySelector(".edit-category").value;
-            const optionsError = validateTaskOptions(editedPriority, editedCategory);
-            if (optionsError) {
-                alert(optionsError);
-                return;
-            }
-
-            if (hasDuplicatePendingTitle(editedTitle, selectedTask.id)) {
-                alert("A pending task with this title already exists.");
+            const validationError = validateTaskData(editedTitle, editedPriority, editedCategory, selectedTask.id);
+            if (validationError) {
+                alert(validationError);
                 return;
             }
 
