@@ -32,11 +32,21 @@ document.addEventListener("DOMContentLoaded", () => {
         personal: "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300"
     };
 
+    /**
+     * Capitalizes the first letter of a string.
+     * @param {string} text - The text to capitalize.
+     * @returns {string} The capitalized string.
+     */
     function capitalize(text) {
         if (typeof text !== "string" || text.length === 0) return "";
         return text.charAt(0).toUpperCase() + text.slice(1);
     }
 
+    /**
+     * Validates a task title based on length and allowed characters.
+     * @param {string} title - The task title.
+     * @returns {string} Error message or empty string if valid.
+     */
     function validateTaskTitle(title) {
         if (!title) {
             return "Task title is required.";
@@ -57,6 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     }
 
+    /**
+     * Validates task priority and category values.
+     * @param {string} priority - Selected priority.
+     * @param {string} category - Selected category.
+     * @returns {string} Error message or empty string if valid.
+     */
     function validateTaskOptions(priority, category) {
         if (!VALID_PRIORITIES.includes(priority)) {
             return "Invalid priority selected.";
@@ -67,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     }
 
+    /**
+     * Normalizes a task title for comparison purposes.
+     * @param {string} title - The title to normalize.
+     * @returns {string} Normalized title string.
+     */
     function normalizeTaskTitle(title) {
         return title
             .trim()
@@ -75,6 +96,12 @@ document.addEventListener("DOMContentLoaded", () => {
             .toLocaleLowerCase("es-ES");
     }
 
+    /**
+     * Checks if a pending task with the same title already exists.
+     * @param {string} title - Task title.
+     * @param {number|null} excludeTaskId - Optional task ID to exclude from check.
+     * @returns {boolean} True if duplicate exists.
+     */
     function hasDuplicatePendingTitle(title, excludeTaskId = null) {
         const normalizedTitle = normalizeTaskTitle(title);
         return taskList.some(task =>
@@ -83,17 +110,28 @@ document.addEventListener("DOMContentLoaded", () => {
             normalizeTaskTitle(task.title) === normalizedTitle
         );
     }
-
+    
+    /**
+     * Saves the current task list to localStorage.
+     */
     function persistTasks() {
         localStorage.setItem("tasks", JSON.stringify(taskList));
     }
 
+    /**
+     * Updates the UI counter showing completed and total tasks.
+     */
     function updateTaskCounter() {
         const totalTasks = taskList.length;
         const completedTasks = taskList.filter(task => task.status === "completed").length;
         taskCounterLabel.textContent = `${completedTasks}/${totalTasks}`;
     }
 
+    /**
+     * Applies active/inactive styles to a button.
+     * @param {HTMLElement} btn - Button element.
+     * @param {boolean} isActive - Whether the button is active.
+     */
     function applyActiveButtonStyles(btn, isActive) {
         btn.classList.toggle("bg-blue-500", isActive);
         btn.classList.toggle("text-white", isActive);
@@ -179,6 +217,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
+    /**
+     * Checks whether a task matches current active filters and search query.
+     * @param {Object} task - Task object.
+     * @returns {boolean}
+     */
     function matchesFilters(task) {
         return (
             (activeStatusFilter === "all" || task.status === activeStatusFilter) &&
@@ -188,6 +231,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    /**
+     * Renders the task list based on active filters and search query.
+     */
     function renderTasks() {
         taskTableBody.innerHTML = "";
 
@@ -206,6 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
         updateFilterUI();
     }
 
+    /**
+     * Creates a new task object.
+     * @param {string} title - Task title.
+     * @returns {Object} New task object.
+     */
     function createTask(title) {
         return {
             id: Date.now(),
@@ -216,6 +267,14 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    /**
+     * Validates all task data including title, priority, category, and duplicates.
+     * @param {string} title
+     * @param {string} priority
+     * @param {string} category
+     * @param {number|null} excludeTaskId
+     * @returns {string} Error message or empty string if valid.
+     */
     function validateTaskData(title, priority, category, excludeTaskId = null) {
         const titleError = validateTaskTitle(title);
         if (titleError) return titleError;
@@ -342,6 +401,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.documentElement.classList.toggle("dark");
     });
 
+    /**
+     * Normalizes a task loaded from storage to ensure valid structure.
+     * @param {Object} task - Raw task object.
+     * @returns {Object} Normalized task object.
+     */
     function normalizeTask(task) {
         return {
             ...task,
@@ -351,6 +415,9 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    /**
+     * Loads tasks from localStorage and renders them.
+     */
     function loadTasks() {
         const stored = localStorage.getItem("tasks");
         if (stored) {
