@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const MIN_TITLE_LENGTH = 3;
     const MAX_TITLE_LENGTH = 100;
-    const TITLE_ALLOWED_PATTERN = /^[A-Za-z0-9À-ÿ\s.,:;!?()\-_'"]+$/;
+    const TITLE_ALLOWED_PATTERN = /^[\p{L}\p{N}\s.,:;!?()\-_'"]+$/u;
     const VALID_PRIORITIES = ["high", "medium", "low"];
     const VALID_CATEGORIES = ["work", "studies", "personal"];
 
@@ -38,8 +38,16 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {string} The capitalized string.
      */
     function capitalize(text) {
-        if (typeof text !== "string" || text.length === 0) return "";
-        return text.charAt(0).toUpperCase() + text.slice(1);
+        return window.TaskFlowUtils.capitalize(text);
+    }
+
+    /**
+     * Escapes HTML to keep dynamic content safe inside markup.
+     * @param {string} text - Raw text value.
+     * @returns {string} Escaped string.
+     */
+    function escapeHtml(text) {
+        return window.TaskFlowUtils.escapeHtml(text);
     }
 
     /**
@@ -48,23 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {string} Error message or empty string if valid.
      */
     function validateTaskTitle(title) {
-        if (!title) {
-            return "Task title is required.";
-        }
-
-        if (title.length < MIN_TITLE_LENGTH) {
-            return `Task title must be at least ${MIN_TITLE_LENGTH} characters long.`;
-        }
-
-        if (title.length > MAX_TITLE_LENGTH) {
-            return `Task title must be ${MAX_TITLE_LENGTH} characters or less.`;
-        }
-
-        if (!TITLE_ALLOWED_PATTERN.test(title)) {
-            return "Task title contains invalid characters.";
-        }
-
-        return "";
+        return window.TaskFlowUtils.validateTaskTitle(title, {
+            minLength: MIN_TITLE_LENGTH,
+            maxLength: MAX_TITLE_LENGTH,
+            allowedPattern: TITLE_ALLOWED_PATTERN
+        });
     }
 
     /**
@@ -74,13 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {string} Error message or empty string if valid.
      */
     function validateTaskOptions(priority, category) {
-        if (!VALID_PRIORITIES.includes(priority)) {
-            return "Invalid priority selected.";
-        }
-        if (!VALID_CATEGORIES.includes(category)) {
-            return "Invalid category selected.";
-        }
-        return "";
+        return window.TaskFlowUtils.validateTaskOptions(priority, category, {
+            validPriorities: VALID_PRIORITIES,
+            validCategories: VALID_CATEGORIES
+        });
     }
 
     /**
@@ -89,11 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {string} Normalized title string.
      */
     function normalizeTaskTitle(title) {
-        return title
-            .trim()
-            .replace(/\s+/g, " ")
-            .normalize("NFKC")
-            .toLocaleLowerCase("es-ES");
+        return window.TaskFlowUtils.normalizeTaskTitle(title);
     }
 
     /**
@@ -156,6 +145,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    /**
+     * Applies a new filter value and refreshes the task view.
+     * @param {string} filterType - Filter group name.
+     * @param {string} value - Selected filter value.
+     */
+    function setActiveFilter(filterType, value) {
+        if (filterType === "status") {
+            activeStatusFilter = value;
+        }
+
+        if (filterType === "priority") {
+            activePriorityFilter = value;
+        }
+
+        if (filterType === "category") {
+            activeCategoryFilter = value;
+        }
+
+        renderTasks();
+    }
+
     function getTaskStatusMarkup(isDone) {
         return isDone
             ? `<span class="text-green-500 font-medium">Completed</span>`
@@ -169,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${isDone ? "✓" : "○"}
                 </button>
             </td>
-            <td class="py-2">${task.title}</td>
+            <td class="py-2">${escapeHtml(task.title)}</td>
             <td class="py-2">
                 <span class="px-2 py-1 rounded text-xs font-medium ${PRIORITY_BADGES[task.priority]}">
                     ${capitalize(task.priority)}
@@ -193,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <td></td>
             <td>
                 <input type="text"
-                    value="${task.title}"
+                    value="${escapeHtml(task.title)}"
                     class="edit-title border px-2 py-1 rounded bg-white text-black dark:bg-gray-700 dark:text-white dark:border-gray-600">
             </td>
             <td>
@@ -218,6 +228,77 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
+     * Finds a task by its ID.
+     * @param {number} taskId - Task identifier.
+     * @returns {Object|null} Matching task or null.
+     */
+    function getTaskById(taskId) {
+        return taskList.find(task => task.id === taskId) || null;
+    }
+
+    /**
+     * Persists the task list and refreshes the table UI.
+     */
+    function syncTaskView() {
+        persistTasks();
+        renderTasks();
+    }
+
+    /**
+     * Toggles a task between pending and completed.
+     * @param {Object} task - Task to update.
+     */
+    function toggleTaskStatus(task) {
+        task.status = task.status === "completed" ? "pending" : "completed";
+        syncTaskView();
+    }
+
+    /**
+     * Removes a task from the list.
+     * @param {number} taskId - Task identifier.
+     */
+    function deleteTask(taskId) {
+        taskList = taskList.filter(task => task.id !== taskId);
+        syncTaskView();
+    }
+
+    /**
+     * Switches a task row into edit mode.
+     * @param {HTMLElement} taskRow - Table row element.
+     * @param {Object} task - Task data.
+     */
+    function openTaskEditor(taskRow, task) {
+        taskRow.innerHTML = getEditRowMarkup(task);
+    }
+
+    /**
+     * Reads edited values from a row and saves them back to a task.
+     * @param {HTMLElement} taskRow - Table row element.
+     * @param {Object} task - Task data.
+     */
+    function saveTaskEdits(taskRow, task) {
+        const editedTitle = taskRow.querySelector(".edit-title").value.trim();
+        const titleError = validateTaskTitle(editedTitle);
+        if (titleError) {
+            alert(titleError);
+            return;
+        }
+
+        const editedPriority = taskRow.querySelector(".edit-priority").value;
+        const editedCategory = taskRow.querySelector(".edit-category").value;
+        const validationError = validateTaskData(editedTitle, editedPriority, editedCategory, task.id);
+        if (validationError) {
+            alert(validationError);
+            return;
+        }
+
+        task.title = editedTitle;
+        task.priority = editedPriority;
+        task.category = editedCategory;
+        syncTaskView();
+    }
+
+    /**
      * Checks whether a task matches current active filters and search query.
      * @param {Object} task - Task object.
      * @returns {boolean}
@@ -235,18 +316,14 @@ document.addEventListener("DOMContentLoaded", () => {
      * Renders the task list based on active filters and search query.
      */
     function renderTasks() {
-        taskTableBody.innerHTML = "";
-
         const filteredTasks = taskList.filter(matchesFilters);
 
-        filteredTasks.forEach(task => {
-            const isDone = task.status === "completed";
-            const taskRow = document.createElement("tr");
-            taskRow.className = "border-b dark:border-gray-700";
-            taskRow.innerHTML = getTaskRowMarkup(task, isDone);
-
-            taskTableBody.appendChild(taskRow);
-        });
+        taskTableBody.innerHTML = filteredTasks
+            .map(task => {
+                const isDone = task.status === "completed";
+                return `<tr class="border-b dark:border-gray-700">${getTaskRowMarkup(task, isDone)}</tr>`;
+            })
+            .join("");
 
         updateTaskCounter();
         updateFilterUI();
@@ -319,76 +396,47 @@ document.addEventListener("DOMContentLoaded", () => {
         const taskId = Number(clickedButton.dataset.id);
         if (isNaN(taskId)) return;
 
-        const selectedTask = taskList.find(task => task.id === taskId);
+        const selectedTask = getTaskById(taskId);
 
         if (clickedButton.classList.contains("check-btn")) {
-            if (selectedTask) {
-                selectedTask.status = selectedTask.status === "completed" ? "pending" : "completed";
-                persistTasks();
-                renderTasks();
-            }
+            if (selectedTask) toggleTaskStatus(selectedTask);
             return;
         }
 
         if (clickedButton.classList.contains("del-btn")) {
-            taskList = taskList.filter(task => task.id !== taskId);
-            persistTasks();
-            renderTasks();
+            deleteTask(taskId);
             return;
         }
 
         if (clickedButton.classList.contains("edit-btn")) {
             const taskRow = clickedButton.closest("tr");
             if (!selectedTask || !taskRow) return;
-            taskRow.innerHTML = getEditRowMarkup(selectedTask);
+            openTaskEditor(taskRow, selectedTask);
             return;
         }
 
         if (clickedButton.classList.contains("save-btn")) {
             const taskRow = clickedButton.closest("tr");
             if (!selectedTask || !taskRow) return;
-
-            const editedTitle = taskRow.querySelector(".edit-title").value.trim();
-            const titleError = validateTaskTitle(editedTitle);
-            if (titleError) {
-                alert(titleError);
-                return;
-            }
-
-            const editedPriority = taskRow.querySelector(".edit-priority").value;
-            const editedCategory = taskRow.querySelector(".edit-category").value;
-            const validationError = validateTaskData(editedTitle, editedPriority, editedCategory, selectedTask.id);
-            if (validationError) {
-                alert(validationError);
-                return;
-            }
-
-            selectedTask.title = editedTitle;
-            selectedTask.priority = editedPriority;
-            selectedTask.category = editedCategory;
-            persistTasks();
-            renderTasks();
+            saveTaskEdits(taskRow, selectedTask);
         }
     });
 
     document.querySelectorAll(".pill").forEach(btn => {
         btn.addEventListener("click", () => {
-            activeStatusFilter = btn.dataset.filter;
-            renderTasks();
+            setActiveFilter("status", btn.dataset.filter);
         });
     });
 
     document.querySelectorAll("[data-priority]").forEach(btn => {
         btn.addEventListener("click", () => {
-            activePriorityFilter = btn.dataset.priority;
-            renderTasks();
+            setActiveFilter("priority", btn.dataset.priority);
         });
     });
 
     document.querySelectorAll("[data-category]").forEach(btn => {
         btn.addEventListener("click", () => {
-            activeCategoryFilter = btn.dataset.category;
-            renderTasks();
+            setActiveFilter("category", btn.dataset.category);
         });
     });
 
@@ -407,12 +455,13 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {Object} Normalized task object.
      */
     function normalizeTask(task) {
-        return {
-            ...task,
-            status: task.status || "pending",
-            priority: VALID_PRIORITIES.includes(task.priority) ? task.priority : "medium",
-            category: VALID_CATEGORIES.includes(task.category) ? task.category : "personal"
-        };
+        return window.TaskFlowUtils.normalizeTask(task, {
+            validPriorities: VALID_PRIORITIES,
+            validCategories: VALID_CATEGORIES,
+            defaultPriority: "medium",
+            defaultCategory: "personal",
+            defaultStatus: "pending"
+        });
     }
 
     /**
@@ -421,7 +470,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadTasks() {
         const stored = localStorage.getItem("tasks");
         if (stored) {
-            taskList = JSON.parse(stored).map(normalizeTask);
+            try {
+                taskList = JSON.parse(stored).map(normalizeTask);
+            } catch {
+                taskList = [];
+            }
         }
         renderTasks();
     }

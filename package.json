@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build:css": "tailwindcss -i ./FirstWeb/css/tailwind.css -o ./FirstWeb/css/output.css --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/task-utils.test.js"
   },
   "repository": {
     "type": "git",
