@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const taskCategorySelect = document.getElementById("categorySelect");
     const addTaskButton = document.getElementById("addTaskBtn");
     const taskSearchInput = document.getElementById("searchInput");
+    const sortToggleButton = document.getElementById("sortToggleBtn");
     const taskCounterLabel = document.getElementById("taskCounter");
     const themeToggleButton = document.getElementById("darkToggle");
 
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let activePriorityFilter = "all";
     let activeCategoryFilter = "all";
     let searchQuery = "";
+    let sortDirection = "asc";
 
     const PRIORITY_BADGES = {
         high: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
@@ -129,18 +131,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateFilterUI() {
-        document.querySelectorAll(".pill").forEach(btn => {
-            const isActive = btn.dataset.filter === activeStatusFilter;
-            applyActiveButtonStyles(btn, isActive);
-        });
+        document.querySelectorAll("[data-filter-type]").forEach(btn => {
+            const filterType = btn.dataset.filterType;
+            const filterValue = btn.dataset.filter;
+            let isActive = false;
 
-        document.querySelectorAll("[data-priority]").forEach(btn => {
-            const isActive = btn.dataset.priority === activePriorityFilter;
-            applyActiveButtonStyles(btn, isActive);
-        });
+            if (filterType === "status") {
+                isActive = filterValue === activeStatusFilter;
+            } else if (filterType === "priority") {
+                isActive = filterValue === activePriorityFilter;
+            } else if (filterType === "category") {
+                isActive = filterValue === activeCategoryFilter;
+            }
 
-        document.querySelectorAll("[data-category]").forEach(btn => {
-            const isActive = btn.dataset.category === activeCategoryFilter;
             applyActiveButtonStyles(btn, isActive);
         });
     }
@@ -222,9 +225,21 @@ document.addEventListener("DOMContentLoaded", () => {
             </td>
             <td></td>
             <td>
-                <button class="save-btn text-green-500" data-id="${task.id}">Save</button>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button class="save-btn text-green-500" data-id="${task.id}">Save</button>
+                    <button class="cancel-btn text-gray-500" data-id="${task.id}">Cancel</button>
+                </div>
+                <p class="edit-error text-red-500 text-xs mt-1 hidden"></p>
             </td>
         `;
+    }
+
+    function setEditRowError(taskRow, message) {
+        const errorElement = taskRow.querySelector(".edit-error");
+        if (!errorElement) return;
+
+        errorElement.textContent = message;
+        errorElement.classList.toggle("hidden", !message);
     }
 
     /**
@@ -277,10 +292,12 @@ document.addEventListener("DOMContentLoaded", () => {
      * @param {Object} task - Task data.
      */
     function saveTaskEdits(taskRow, task) {
-        const editedTitle = taskRow.querySelector(".edit-title").value.trim();
+        const editedTitleInput = taskRow.querySelector(".edit-title");
+        const editedTitle = editedTitleInput.value.trim();
         const titleError = validateTaskTitle(editedTitle);
         if (titleError) {
-            alert(titleError);
+            setEditRowError(taskRow, titleError);
+            editedTitleInput.focus();
             return;
         }
 
@@ -288,10 +305,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const editedCategory = taskRow.querySelector(".edit-category").value;
         const validationError = validateTaskData(editedTitle, editedPriority, editedCategory, task.id);
         if (validationError) {
-            alert(validationError);
+            setEditRowError(taskRow, validationError);
             return;
         }
 
+        setEditRowError(taskRow, "");
         task.title = editedTitle;
         task.priority = editedPriority;
         task.category = editedCategory;
@@ -304,11 +322,12 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {boolean}
      */
     function matchesFilters(task) {
+        const searchTarget = `${task.title} ${task.priority} ${task.category}`.toLowerCase();
         return (
             (activeStatusFilter === "all" || task.status === activeStatusFilter) &&
             (activePriorityFilter === "all" || task.priority === activePriorityFilter) &&
             (activeCategoryFilter === "all" || task.category === activeCategoryFilter) &&
-            task.title.toLowerCase().includes(searchQuery)
+            searchTarget.includes(searchQuery)
         );
     }
 
@@ -316,14 +335,34 @@ document.addEventListener("DOMContentLoaded", () => {
      * Renders the task list based on active filters and search query.
      */
     function renderTasks() {
-        const filteredTasks = taskList.filter(matchesFilters);
+        const filteredTasks = taskList
+            .filter(matchesFilters)
+            .slice()
+            .sort((a, b) => {
+                const left = a.title.toLowerCase();
+                const right = b.title.toLowerCase();
+                if (left === right) return 0;
+                return sortDirection === "asc"
+                    ? left.localeCompare(right)
+                    : right.localeCompare(left);
+            });
 
-        taskTableBody.innerHTML = filteredTasks
-            .map(task => {
-                const isDone = task.status === "completed";
-                return `<tr class="border-b dark:border-gray-700">${getTaskRowMarkup(task, isDone)}</tr>`;
-            })
-            .join("");
+        if (filteredTasks.length === 0) {
+            taskTableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No tasks match current filters or search.
+                    </td>
+                </tr>
+            `;
+        } else {
+            taskTableBody.innerHTML = filteredTasks
+                .map(task => {
+                    const isDone = task.status === "completed";
+                    return `<tr class="border-b dark:border-gray-700">${getTaskRowMarkup(task, isDone)}</tr>`;
+                })
+                .join("");
+        }
 
         updateTaskCounter();
         updateFilterUI();
@@ -415,6 +454,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if (clickedButton.classList.contains("cancel-btn")) {
+            renderTasks();
+            return;
+        }
+
         if (clickedButton.classList.contains("save-btn")) {
             const taskRow = clickedButton.closest("tr");
             if (!selectedTask || !taskRow) return;
@@ -422,26 +466,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    document.querySelectorAll(".pill").forEach(btn => {
-        btn.addEventListener("click", () => {
-            setActiveFilter("status", btn.dataset.filter);
-        });
+    taskTableBody.addEventListener("keydown", e => {
+        const taskRow = e.target.closest("tr");
+        if (!taskRow || !taskRow.querySelector(".edit-title")) return;
+
+        if (e.key === "Enter") {
+            e.preventDefault();
+            const taskId = Number(taskRow.querySelector(".save-btn").dataset.id);
+            const selectedTask = getTaskById(taskId);
+            if (selectedTask) saveTaskEdits(taskRow, selectedTask);
+            return;
+        }
+
+        if (e.key === "Escape") {
+            renderTasks();
+        }
     });
 
-    document.querySelectorAll("[data-priority]").forEach(btn => {
+    document.querySelectorAll("[data-filter-type]").forEach(btn => {
         btn.addEventListener("click", () => {
-            setActiveFilter("priority", btn.dataset.priority);
-        });
-    });
-
-    document.querySelectorAll("[data-category]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            setActiveFilter("category", btn.dataset.category);
+            setActiveFilter(btn.dataset.filterType, btn.dataset.filter);
         });
     });
 
     taskSearchInput.addEventListener("input", () => {
         searchQuery = taskSearchInput.value.toLowerCase();
+        renderTasks();
+    });
+
+    sortToggleButton.addEventListener("click", () => {
+        sortDirection = sortDirection === "asc" ? "desc" : "asc";
+        sortToggleButton.textContent = sortDirection === "asc" ? "A → Z" : "Z → A";
         renderTasks();
     });
 
