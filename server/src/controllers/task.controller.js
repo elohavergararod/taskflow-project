@@ -1,17 +1,17 @@
 const taskService = require("../services/task.service");
 
 const getTasks = (req, res) => {
-  res.json(taskService.obtenerTodas());
+  res.json(taskService.obtainAll());
 };
 
 const createTask = (req, res) => {
-  const task = taskService.crearTarea(req.body);
+  const task = taskService.createTask(req.body);
   res.status(201).json(task);
 };
 
 const deleteTask = (req, res) => {
   try {
-    taskService.eliminarTarea(req.params.id);
+    taskService.deleteTask(req.params.id);
     res.status(204).send();
   } catch (err) {
     res.status(404).json({ error: err.message });

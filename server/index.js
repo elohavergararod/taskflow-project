@@ -13,6 +13,21 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
 
+app.use((err, req, res, next) => {
+
+  if (err.message === "NOT_FOUND") {
+    return res.status(404).json({
+      error: "Resource not found"
+    });
+  }
+
+  console.error(err);
+
+  return res.status(500).json({
+    error: "Internal server error"
+  });
+});
+
 const PORT = 3000;
 
 app.listen(PORT, () => {
