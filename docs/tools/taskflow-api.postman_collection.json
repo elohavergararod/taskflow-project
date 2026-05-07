@@ -1,0 +1,172 @@
+{
+  "info": {
+    "_postman_id": "1662034a-3bc8-4396-a490-03ab97a80697",
+    "name": "TaskFlow API",
+    "description": "Integration tests for TaskFlow REST API. Covers happy paths and intentional error cases.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54516936",
+    "_collection_link": "https://go.postman.co/collection/54516936-1662034a-3bc8-4396-a490-03ab97a80697?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "GET all tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            },
+            "description": "Returns all tasks. Expected: 200 OK + array."
+          },
+          "response": []
+        },
+        {
+          "name": "POST create task — valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Buy groceries\",\n    \"priority\": \"high\",\n    \"category\": \"personal\"\n}"
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            },
+            "description": "Creates a task with all required fields. Expected: 201 Created + task object."
+          },
+          "response": []
+        },
+        {
+          "name": "POST create task — missing title",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"priority\": \"high\",\n    \"category\": \"work\"\n}"
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            },
+            "description": "Sends a POST without a title. Expected: 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "POST create task — empty body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            },
+            "description": "Sends a POST with an empty body. Expected: 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE task — valid id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks/1778175176378",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "1778175176378"
+              ]
+            },
+            "description": "Deletes task with id 1. Expected: 204 No Content. Run after creating a task first."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE task — non-existent id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "localhost:3000/api/v1/tasks/9999",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "9999"
+              ]
+            },
+            "description": "Tries to delete a task that does not exist. Expected: 404 Not Found."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
